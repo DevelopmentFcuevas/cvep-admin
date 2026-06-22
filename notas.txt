@@ -1,0 +1,66 @@
+Google:dashboard react
+
+https://www.youtube.com/watch?v=gK0v_d91epk
+
+
+Crear una carpeta vacia: react-admin-dashboard
+
+$ npm create vite@latest .
+
+$ npm install tailwindcss @tailwindcss/vite
+
+$ npm i react-router-dom lucide-react recharts
+
+$ npm i framer-motion
+
+$ npm install dayjs
+
+$ npm run dev
+
+$ npm install @headlessui/react
+
+$ npm install @heroicons/react
+
+----------------------------------------------
+
+¿Qué tipo de proyecto es?
+El proyecto es:
+Un panel administrativo (dashboard) hecho en React + Vite
+Se usa para:
+- Mostrar métricas (ventas, analytics)
+- Administrar datos (países, ciudades, barrios, productos, etc.)
+- Visualizar gráficos
+
+src/main.jsx → DONDE TODO ARRANCA
+Renderiza el componente App en la pantalla
+
+
+Copiar el proyecto para volver a reutilizarlo.
+Se Puede hacer esto:
+- Forma correcta
+Copiar la carpeta:
+plantilla-admin → mi-nuevo-proyecto
+Entrar a la carpeta nueva:
+cd mi-nuevo-proyecto
+Eliminar cosas innecesarias:
+.git/ (si existe)
+node_modules/ (si lo copiaste)
+
+Regla clave:
+- El código se copia, pero las dependencias se reinstalan.
+
+Primero SIEMPRE hacer:
+$ npm install
+Esto hace:
+Lee package.json
+Descarga todas las librerías necesarias
+Crea la carpeta node_modules/
+
+Actualizar librerías:
+Ver qué está desactualizado:
+$ npm outdated
+
+$ npm update
+
+Inicializar el proyecto
+$ npm run dev
