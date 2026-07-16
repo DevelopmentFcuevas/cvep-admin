@@ -5,27 +5,34 @@ import { Link } from 'react-router-dom';					// Navegación interna con React Ro
 import toast from "react-hot-toast";
 import dayjs from 'dayjs';                                  // Para manejar fechas fácilmente
 // 📁 Íconos u otros recursos externos
-import { Search, Pencil, Trash2, Eye, Hash, Tag, Calendar, RefreshCw, Settings, Shield, Activity } from "lucide-react";	// Íconos
+import { Search, 
+	Pencil, 
+	Trash2, 
+	Eye, 
+	Hash, 
+	Tag, 
+	Calendar, 
+	RefreshCw, 
+	Settings, 
+	Shield, } from "lucide-react";							// Íconos
 import { useReactTable, 
 	getCoreRowModel, 
 	getSortedRowModel, 
 	getPaginationRowModel, 
-	flexRender } from '@tanstack/react-table';
+	flexRender } from '@tanstack/react-table';				// Librería para tablas avanzadas con React
 // 🔧 Servicios (API, helpers, utilidades)
 import axios from '../../services/api';						// Cliente Axios centralizado
-import { getFamiliasProducto } from '../../modules/inventory/services/familiaProductoService';	// Servicios específicos de familia producto
+import { getCategoriasProducto } from '../../modules/inventory/services/categoriaProductoService';	// Servicios específicos de familia producto
 import { handleError } from '../../utils/handleError';		// Helper para manejar errores
 // 🧩 Componentes comunes
 import ConfirmModal from "../common/ConfirmModal";			// Modal de Confirmación
-import ErrorMessage from "../common/ErrorMessage";			// Mensajes de Error
 // Componentes específicos
 
 
-
 /**
- * Componente que renderiza una tabla de familia productos con búsqueda, ordenamiento y paginación.
+ * Componente que renderiza una tabla de categorías de productos con búsqueda, ordenamiento y paginación.
  */
-const FamiliaProductoTable = () => {
+const CategoriaProductoTable = () => {
 	// Estado para el término de búsqueda
 	const [searchTerm, setSearchTerm] = useState("");
 
@@ -33,7 +40,7 @@ const FamiliaProductoTable = () => {
     const [records, setRecords] = useState([]);
 
 	// Estado que contiene los registros filtrados (por búsqueda), inicializado con un array vacío.
-    const [filteredFamiliaProducto, setFilteredFamiliaProducto] = useState([]);
+    const [filteredCategoriaProducto, setFilteredCategoriaProducto] = useState([]);
 
 	// Estado para manejar la animación del loader mientras se obtienen los datos
 	const [loading, setLoading] = useState(true);
@@ -48,98 +55,67 @@ const FamiliaProductoTable = () => {
 	const [modalOpen, setModalOpen] = useState(false);
 
 	// Estado que guarda familia de producto seleccionado para eliminar (usado al abrir el modal)
-	const [selectedFamiliaProducto, setSelectedFamiliaProducto] = useState(null);
+	const [selectedCategoriaProducto, setSelectedCategoriaProducto] = useState(null);
 
 	/**
 	 * useEffect que se ejecuta una sola vez al montar el componente.
 	 * Realiza la llamada a la API para obtener la lista de familia productos.
 	 */
-	/*useEffect(() => {
-		setLoading(true); // Mostrar el loader antes de iniciar la carga
-		setError(null); // Limpiar errores anteriores
-
-		axios.get('http://127.0.0.1:8000/api/product-families')
-			.then(response => {
-    			if (response.data.success) {
-        			setRecords(response.data.data);
-        			setFilteredFamiliaProducto(response.data.data);
-    			} else {
-        			throw new Error("Respuesta inválida del servidor");
-    			}
-			})
-			.catch(error => {
-    			if (error.response) {
-        			setError(error.response.data.message || "Error del servidor");
-					console.error('Error del servidor', error.response.data);
-    			} else if (error.request) {
-        			setError("No hay conexión con el servidor");
-					console.error('No se recibió respuesta del servidor', error.request);
-    			} else {
-        			setError("Error inesperado");
-					console.error('Error al configurar la solicitud', error.message);
-    			}
-			})
-			.finally(() => {
-            	setLoading(false); // Ocultar el loader después de que la solicitud se complete (ya sea éxito o error)
-        	});
-    }, []);*/
 	useEffect(() => {
 		setLoading(true); // Mostrar el loader antes de iniciar la carga
+		setError(null); // Limpiar error anterior antes de la nueva carga
 
-		getFamiliasProducto()
+		getCategoriasProducto()
 			.then(response => {
-    			if (response.data.success) {
-        			setRecords(response.data.data);
-        			setFilteredFamiliaProducto(response.data.data);
-    			} else {
-        			throw new Error("No pudimos obtener los datos. Intenta nuevamente.");
-    			}
+				if (response.data.success) {
+					setRecords(response.data.data);
+					setFilteredCategoriaProducto(response.data.data);
+				} else {
+					throw new Error("No pudimos obtener los datos. Intenta nuevamente.");
+				}
 			})
-			.catch(handleError) // Usar el helper global de manejo de errores
+			.catch((error) => handleError(error, setError)) // Usar el helper global con setError
 			.finally(() => {
-            	setLoading(false); // Ocultar el loader después de que la solicitud se complete (ya sea éxito o error)
-        	});
-    }, []);
-	
+				setLoading(false); // Ocultar el loader después de que la solicitud se complete
+			});
+	}, []);
+
 	/**
 	 * Filtra la tabla en tiempo real con base al término de búsqueda.
-	 * Filtra por el campo "name" (nombre de la familia producto).
+	 * Filtra por el campo "nombre" (nombre de la categoría de producto).
 	 */
 	const handleSearch = (e) => {
-        const term = e.target.value.toLowerCase();
-        setSearchTerm(term);
+		const term = e.target.value.toLowerCase();
+		setSearchTerm(term);
 
-		// Filtro por nombre (puedes agregar más campos si quieres)
-        const filtered = records.filter(
-            (familiaProducto) => familiaProducto.nombre.toLowerCase().includes(term) 
-				/* || familiaProducto.continente.toLowerCase().includes(term)
-				|| familiaProducto.estado.toLowerCase().includes(term) */
-        );
-        setFilteredFamiliaProducto(filtered);
-    };
+		const filtered = records.filter(
+			(categoriaProducto) => categoriaProducto.nombre.toLowerCase().includes(term)
+		);
+		setFilteredCategoriaProducto(filtered);
+	};
 
 	/**
-	 * Maneja la eliminación de un familia producto.
+	 * Maneja la eliminación de una categoría de producto.
 	 * - Llama a la API para eliminarlo
 	 * - Muestra mensaje de éxito o error
 	 * - Refresca la tabla si se elimina correctamente
 	 */
 	const handleDelete = async () => {
 		try {
-			await axios.delete(`product-families/${selectedFamiliaProducto.id}`);
-			toast.success("Categoría de Productos eliminado correctamente");
+			await axios.delete(`product-families/${selectedCategoriaProducto.id}`);
+			toast.success("Categoría de Producto eliminado correctamente");
 			setModalOpen(false); // Cierra el modal
 
-			// Refrescar la lista de familia producto(Actualiza los datos tras la eliminación).
+			// Refrescar la lista de categorías de producto(Actualiza los datos tras la eliminación).
 			const response = await axios.get("product-families");
 			setRecords(response.data.data);
-			setFilteredFamiliaProducto(response.data.data);
+			setFilteredCategoriaProducto(response.data.data);
 
 			// Mensaje amigable para el usuario
 			setError(null); // Borra errores anteriores, si existían
 		} catch (error) {
-			console.error("Error al eliminar Categoría de Productos:", error?.response?.data || error.message || error);
-			setError("No se pudo eliminar Categoría de Productos. Verifica tu conexión o intenta más tarde.");
+			console.error("Error al eliminar Categoría de Producto:", error?.response?.data || error.message || error);
+			setError("No se pudo eliminar la Categoría de Producto. Verifica tu conexión o intenta más tarde.");
 		}
 	};
 
@@ -162,61 +138,18 @@ const FamiliaProductoTable = () => {
 	 * Definición de columnas de la tabla.
 	 * Cada columna puede tener una key (campo del objeto), un título y una forma 
 	 * personalizada de renderizar el contenido.
+	 * Por ejemplo, la columna de "estado" usa un badge de color según el valor.
+	 * La columna de "acciones" tiene botones para ver, editar y eliminar.
+	 * Cada columna puede ser ordenable, y se puede personalizar el formato de fecha.
+	 * Se usa useMemo para memorizar la definición de columnas y evitar recalcularla en cada render.
+	 * Cada acción de la tabla (ver, editar, eliminar) está asociada a un ícono y un tooltip para mejorar la UX.
+	 * Cada accesorKey corresponde a un campo del objeto familiaProducto que viene de la API.
+	 * La columna de "acciones" no tiene accessorKey porque no corresponde a un campo del objeto, sino a botones de acción.
+	 * Se puede agregar más columnas según se necesite, por ejemplo, descripción, cantidad de productos asociados, etc.
 	 */
 	const columns = useMemo(() => [
 		{
-			accessorKey: 'id',
-			/* header: '#Id', */
-			header: () => (
-				<span className="flex items-center gap-1">
-					<Hash size={14} /> ID
-				</span>
-			),
-			cell: (info) => <div className='text-sm text-gray-300'>{info.getValue()}</div>,
-		},
-		{
-			accessorKey: 'nombre',
-			/* header: 'Nombre', */
-			header: () => (
-				<span className="flex items-center gap-1">
-					<Tag size={14} /> Nombre de la categoría
-				</span>
-			),
-			cell: (info) => <div className='text-sm text-gray-300'>{info.getValue()}</div>,
-		},
-		{
-			accessorKey: 'estado',
-			// header: 'Estado',
-			header: () => (
-				<span className="flex items-center gap-1">
-					<Shield size={14} /> Estado
-				</span>
-			),
-			cell: (info) => <EstadoBadge estado={info.getValue()} />,
-		},
-		{
-			accessorKey: 'created_at',
-			// header: 'Fecha Creación',
-			header: () => (
-				<span className="flex items-center gap-1">
-					<Calendar size={14} /> Fecha de creación
-				</span>
-			),
-			cell: (info) => <div className='text-sm text-gray-300'>{ info.getValue() ? dayjs(info.getValue()).format('DD/MM/YYYY hh:mm:ss A') : '' }</div>,
-		},
-		{
-			accessorKey: 'updated_at',
-			// header: 'Fecha Actualización',
-			header: () => (
-				<span className="flex items-center gap-1">
-					<RefreshCw size={14} /> Última actualización
-				</span>
-			),
-			cell: (info) => <div className='text-sm text-gray-300'>{ info.getValue() ? dayjs(info.getValue()).format('DD/MM/YYYY hh:mm:ss A') : '' }</div>,
-		},
-		{
 			id: 'acciones',
-			/* header: 'Acciones', */
 			header: () => (
 				<span className="flex items-center gap-1">
 					<Settings size={14} /> Acciones
@@ -245,7 +178,7 @@ const FamiliaProductoTable = () => {
     						className='hover:text-red-400'
     						title="Eliminar"
 							onClick={() => {
-								setSelectedFamiliaProducto(familiaProducto);
+								setSelectedCategoriaProducto(familiaProducto);
 								setModalOpen(true);
 							}}
 						>
@@ -255,6 +188,52 @@ const FamiliaProductoTable = () => {
 				);
 			},
 		},
+		{
+			accessorKey: 'id',
+			header: () => (
+				<span className="flex items-center gap-1">
+					<Hash size={14} /> ID
+				</span>
+			),
+			cell: (info) => <div className='text-sm text-gray-300'>{info.getValue()}</div>,
+		},
+		{
+			accessorKey: 'nombre',
+			header: () => (
+				<span className="flex items-center gap-1">
+					<Tag size={14} /> Nombre de la categoría
+				</span>
+			),
+			cell: (info) => <div className='text-sm text-gray-300'>{info.getValue()}</div>,
+		},
+		{
+			accessorKey: 'estado',
+			header: () => (
+				<span className="flex items-center gap-1">
+					<Shield size={14} /> Estado
+				</span>
+			),
+			cell: (info) => <EstadoBadge estado={info.getValue()} />,
+		},
+		{
+			accessorKey: 'created_at',
+			header: () => (
+				<span className="flex items-center gap-1">
+					<Calendar size={14} /> Fecha de creación
+				</span>
+			),
+			cell: (info) => <div className='text-sm text-gray-300'>{ info.getValue() ? dayjs(info.getValue()).format('DD/MM/YYYY HH:mm:ss A') : '' }</div>,
+		},
+		{
+			accessorKey: 'updated_at',
+			header: () => (
+				<span className="flex items-center gap-1">
+					<RefreshCw size={14} /> Última actualización
+				</span>
+			),
+			cell: (info) => <div className='text-sm text-gray-300'>{ info.getValue() ? dayjs(info.getValue()).format('DD/MM/YYYY HH:mm:ss A') : '' }</div>,
+		},
+		
 	], []);
 
 	/**
@@ -262,7 +241,7 @@ const FamiliaProductoTable = () => {
 	 * Permite manejar ordenamiento, paginación y renderizado.
 	 */
 	const table = useReactTable({
-		data: filteredFamiliaProducto,
+		data: filteredCategoriaProducto,
 		columns,
 		state: {
 			sorting,
@@ -286,13 +265,26 @@ const FamiliaProductoTable = () => {
 		);
 	}
 	
-	
-	if (!loading && filteredFamiliaProducto.length === 0) {
+	/*
+	 * Renderiza un mensaje si no hay registros disponibles.
+	 * Esto puede ocurrir si la API no devuelve datos o si el filtro de búsqueda no encuentra coincidencias.
+	 * Se ofrece un enlace para crear una nueva categoría de producto. 
+	*/
+	if (error) {
+        return (
+            <div className="bg-red-500/10 border border-red-500 text-red-400 p-4 rounded mb-4">
+                ⚠️ {error}
+            </div>
+        );
+    }
+
+	//if (!loading && filteredCategoriaProducto.length === 0) {
+	if (!loading && records.length === 0) {		
         return (
             <div className="bg-blue-500/10 border border-blue-500 text-blue-400 p-4 rounded">
                 📦 Aún no hay Categorías de Productos registradas.
                 <Link
-                    to="/product-families/create"
+                    to="/categorias-productos/create"
                     className="ml-2 underline text-blue-300"
                 >
                     Crear nueva
@@ -312,19 +304,6 @@ const FamiliaProductoTable = () => {
 			 * Por ejemplo, si el error es de conexión, se podría mostrar un mensaje específico para eso.
 			 * Si el error viene del servidor, se podría mostrar el mensaje que envía el backend (si es seguro hacerlo).
 			 */}
-			{/*
-			if (error) {
-				return (
-					<div className="flex justify-center items-center h-64">
-						<div className="text-center">
-							<p className="text-red-400 text-lg font-medium mb-2">{error}</p>
-							<p className="text-gray-400 text-sm">
-								Por favor, revisa tu conexión o contacta al soporte si el problema persiste.
-							</p>
-						</div>
-					</div>
-				);
-			} */}
 			{error && (
 				<div className="bg-red-500/10 border border-red-500 text-red-400 p-4 rounded mb-4">
 					⚠️ {error}
@@ -428,11 +407,11 @@ const FamiliaProductoTable = () => {
 					isOpen={modalOpen}
 					onClose={() => setModalOpen(false)}
 					onConfirm={handleDelete}
-					message={`¿Estás seguro que deseas eliminar Categoría de Productos "${selectedFamiliaProducto?.name}"? Esta acción no se puede deshacer.`}
+					message={`¿Estás seguro que deseas eliminar Categoría de Producto "${selectedCategoriaProducto?.name}"? Esta acción no se puede deshacer.`}
 				/>
 			</motion.div>
 		</>
 	);
 };
 
-export default FamiliaProductoTable;
+export default CategoriaProductoTable;

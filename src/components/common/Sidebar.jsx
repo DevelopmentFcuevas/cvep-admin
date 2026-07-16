@@ -40,7 +40,7 @@ const SIDEBAR_ITEMS = [
     { name:"Departamentos", icon:MapPin, color:"#EC4899", href:"/departamentos" },
     { name:"Ciudades", icon:Building, color:"#EC4899", href:"/ciudades" },
     { name:"Barrios", icon:MapPinHouse, color:"#EC4899", href:"/barrios" },
-    { name:"Familias de Productos", icon:ShoppingBag, color:"#8B5CF6", href:"/familias-producto" },
+    { name:"Categorías de Productos", icon:ShoppingBag, color:"#8B5CF6", href:"/categorias-productos" },
     { name:"Sales", icon:DollarSign, color:"#10B981", href:"/sales" },
     { name:"Orders", icon:ShoppingCart, color:"#F59E0B", href:"/orders" },
     { name:"Analytics", icon:TrendingUp, color:"#3B82F6", href:"/analytics" },

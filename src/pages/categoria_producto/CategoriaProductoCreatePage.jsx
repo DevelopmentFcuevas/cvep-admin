@@ -2,10 +2,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';                                     // Navegación interna con React Router
 // 📁 Íconos u otros recursos externos
-import { List, Plus } from "lucide-react";                                          // Íconos
+import { List, Plus, Save, ArrowLeft, XCircle } from "lucide-react";                // Íconos
 import worldGlobe from '../../assets/world-globe.png';                              // Imagen de ejemplo
 // 🔧 Servicios (API, helpers, utilidades)
 import axios from '../../services/api';                                             // Cliente Axios centralizado
+import { createCategoriaProducto } from '../../modules/inventory/services/categoriaProductoService'; // Servicio para crear familia-producto
+import { handleError } from '../../utils/handleError';                              // Helper global para manejar errores
 // 🧩 Componentes comunes
 import Header from '../../components/common/Header';                                // Título de la sección
 import Breadcrumb from '../../components/common/Breadcrumb';                        // Migas de pan para la Ruta de navegación
@@ -17,7 +19,7 @@ import Section from '../../components/common/Section';
  * Página Crear Familia de Productos que muestra el formulario de familia de productos.
  * Se encarga de guardar datos de familia-producto hacia la API.
  */
-const FamiliaProductoCreatePage = () => {
+const CategoriaProductoCreatePage = () => {
 
     const navigate = useNavigate();
 
@@ -57,9 +59,9 @@ const FamiliaProductoCreatePage = () => {
 
         // Nombre del familia_productos (obligatorio, solo letras, espacios y guiones)
         if (isBlank(form.nombre)) {
-            newErrors.nombre = 'Por favor, ingresa el nombre de la familia de producto.';
+            newErrors.nombre = 'Por favor, ingresa el nombre de la categoría de producto.';
         } else if (!/^[\p{L}\s'-]{2,255}$/u.test(form.nombre.trim())) {
-            newErrors.nombre = 'El nombre contiene caracteres inválidos o excede los 255 caracteres.';
+            newErrors.nombre = 'El nombre de la ca contiene caracteres inválidos o excede los 255 caracteres.';
         }
     
         setErrors(newErrors);
@@ -90,39 +92,20 @@ const FamiliaProductoCreatePage = () => {
                 nombre: form.nombre.trim(),
             };
 
-            await axios.post('/product-families', sanitizedForm);
+            //await axios.post('/product-families', sanitizedForm);
+            await createCategoriaProducto(sanitizedForm);
             setMessage({ 
                 type: 'success', 
-                text: '¡El registro de familia de productos se creó correctamente!' 
+                text: '¡El registro de Categoría de productos se creó correctamente!' 
             });
-            setTimeout(() => navigate('/familias-producto'), 1500);
+            setTimeout(() => navigate('/categorias-productos'), 1500);
         } catch (error) {
-            console.error('Error en handleSubmit - No se pudo crear el familia_productos:', error);
-            if (error.response) {
-                // El backend respondió con un código 4xx o 5xx
-                //const backendMessage = error.response.data?.message || 'Error desconocido desde el servidor.';
-                const backendMessage = 
-                    typeof error.response.data === 'string'
-                        ? error.response.data
-                        : error.response.data?.message || 'Error desconocido desde el servidor.';
-                setMessage({ 
-                    type: 'error', 
-                    text: backendMessage 
-                });
-            } else if (error.request) {
-                // No hubo respuesta del servidor
-                setMessage({ 
-                    type: 'error', 
-                    text: 'No se pudo conectar con el servidor. Verifica tu conexión.' 
-                });
-            } else {
-                // Error al configurar la solicitud
-                setMessage({ 
-                    type: 'error', 
-                    text: 'Error interno al procesar la solicitud.' 
-                });
-            }
-
+            // Usar el helper global para traducir el error en un mensaje amigable
+            const mensajeAmigable = handleError(error);
+            setMessage({ 
+                type: 'error', 
+                text: mensajeAmigable 
+            });
         } finally {
             setLoading(false);
         }
@@ -131,17 +114,25 @@ const FamiliaProductoCreatePage = () => {
     return (
         <div className='flex-1 overflow-auto relative z-10 bg-gray-900'>
             {/* 🧭 Header superior de la página(Cabecera con título) */}
-            <Header title='Crear Familia de Productos' />
+            <Header title='Crear Categoría de Productos' />
 
             {/* 🧷 Breadcrumb(Migas de pan para la Ruta de navegación) */}
             <Breadcrumb items={[
-                { label: <><List className="inline w-4 h-4 mr-1"/> Listado</>, href: '/familias-producto' },
+                { label: <><List className="inline w-4 h-4 mr-1"/> Listado</>, href: '/product-families' },
                 { label: <><Plus className="inline w-4 h-4 mr-1"/> Crear</> }
             ]} />
 
             {/* 🧾 Formulario */}
 			<main className='max-w-7xl mx-auto py-6 px-4 lg:px-8'>
-                <Section title="Datos del Producto Familia" description="Completa el formulario para crear una nueva familia de productos.">
+                <Section title="Datos de la Categoría de Productos" description="Completa el formulario para crear una nueva categoría de productos.">
+                    
+                    <div className="bg-blue-600/10 border border-blue-500 text-blue-200 p-4 rounded mb-6">
+                        <p className="text-sm">
+                            Aquí puedes crear categorías para organizar tus productos 
+                            (ej: útiles, suministros, repuestos).
+                        </p>
+                    </div>
+
                     <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
                         {/* Formulario a la izquierda */}
                         <form onSubmit={handleSubmit} className="space-y-6 bg-gray-800 p-6 rounded-2xl shadow-md">
@@ -156,9 +147,10 @@ const FamiliaProductoCreatePage = () => {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {/* 🧱 Campos individuales generados dinámicamente */}
+                                {/* pattern:"^[A-Za-zÁÉÍÓÚáéíóúÑñ\\s-]+$", */}
                                 {[
-                                    { name: 'nombre', label: 'Nombre de la familia producto', placeholder: 'Ej: Útiles', maxLength: 50, pattern:"^[A-Za-zÁÉÍÓÚáéíóúÑñ\\s-]+$" },
-                                ].map(({ name, label, type = 'text', placeholder, maxLength, pattern, inputMode, min }) => (
+                                    { name: 'nombre', label: 'Nombre de la categoría', placeholder: 'Ej: Útiles de oficina', maxLength: 50, description: 'Nombre que identifica la categoría dentro del sistema.', autoFocus: true },
+                                ].map(({ name, label, type = 'text', placeholder, maxLength, pattern, inputMode, min, description, autoFocus }) => (
                                     <div key={name}>
                                         <label title={label} className="text-lg font-semibold text-gray-100">{label}</label>
                                         <input
@@ -166,6 +158,7 @@ const FamiliaProductoCreatePage = () => {
                                             name={name}
                                             value={form[name]}
                                             onChange={handleChange}
+                                            autoFocus={!!autoFocus}
                                             className="mt-1 w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                             placeholder={placeholder}
                                             maxLength={maxLength}
@@ -173,6 +166,10 @@ const FamiliaProductoCreatePage = () => {
                                             inputMode={inputMode}
                                             min={min}
                                         />
+                                        {description && (
+                                            <p className="text-xs text-gray-400 mt-1">{description}</p>
+                                        )}
+
                                         {errors[name] && (
                                             <p className="text-red-400 text-sm mt-1">{errors[name]}</p>
                                         )}
@@ -182,16 +179,46 @@ const FamiliaProductoCreatePage = () => {
                             </div>
 
                             {/* ✅ Botón de envío */}
-                            <div className="flex justify-end">
+                            {/* <div className="flex justify-end">
                                 <button
                                     type="submit"
                                     className='bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold shadow-md transition'
                                     disabled={loading}
                                 >
-                                    {/* Guardar */}
+                                    {/* Guardar 
                                     {loading ? 'Guardando...' : 'Guardar'}
                                 </button>
+                            </div> */}
+
+                            <div className="flex justify-between items-center mt-6">
+                                {/* Volver */}
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate('/categorias-productos')}
+                                        className="flex items-center gap-2 bg-slate-500 hover:bg-slate-600 text-white px-4 py-2 rounded-lg"
+                                    >
+                                        <ArrowLeft size={18}/> Volver
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setForm({ nombre: '' })}
+                                        className="flex items-center gap-2 bg-slate-500 hover:bg-slate-600 text-white px-4 py-2 rounded-lg"
+                                    >
+                                        <XCircle size={18}/> Limpiar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className='bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold shadow-md transition flex items-center gap-2'
+                                    >
+                                        <Save size={18}/>
+                                        {loading ? "Guardando..." : "Guardar Categoría"}
+                                    </button>
+                                </div>
                             </div>
+
                         </form>
 
                         {/* 🖼️ Vista previa de la bandera o imagen genérica estática a la derecha */}
@@ -205,4 +232,4 @@ const FamiliaProductoCreatePage = () => {
     )
 }
 
-export default FamiliaProductoCreatePage;
+export default CategoriaProductoCreatePage;

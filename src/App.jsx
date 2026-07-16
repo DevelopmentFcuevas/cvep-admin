@@ -25,8 +25,8 @@ import BarrioListPage from "./pages/barrios/BarrioListPage";
 import BarrioCreatePage from "./pages/barrios/BarrioCreatePage";
 import BarrioDetailPage from "./pages/barrios/BarrioDetailPage";
 import BarrioEditPage from "./pages/barrios/BarrioEditPage";
-import FamiliaProductoListPage from "./pages/familia_producto/FamiliaProductoListPage";
-import FamiliaProductoCreatePage from "./pages/familia_producto/FamiliaProductoCreatePage";
+import CategoriaProductoListPage from "./pages/categoria_producto/CategoriaProductoListPage";
+import CategoriaProductoCreatePage from "./pages/categoria_producto/CategoriaProductoCreatePage";
 
 /* 
   Tip para modificar fácil:
@@ -93,8 +93,8 @@ function App() {
         <Route path="/barrios/:id/edit" element={<BarrioEditPage />} />
 
         {/* Páginas de familia de productos */}
-        <Route path="/familias-producto" element={<FamiliaProductoListPage />} />
-        <Route path="/product-families/create" element={<FamiliaProductoCreatePage />} />
+        <Route path="/categorias-productos" element={<CategoriaProductoListPage />} />
+        <Route path="/categorias-productos/create" element={<CategoriaProductoCreatePage />} />
 
         {/* Página de ventas */}
         <Route path="/sales" element={<SalesPage />} />
