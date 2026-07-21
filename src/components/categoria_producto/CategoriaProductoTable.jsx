@@ -22,7 +22,7 @@ import { useReactTable,
 	flexRender } from '@tanstack/react-table';				// Librería para tablas avanzadas con React
 // 🔧 Servicios (API, helpers, utilidades)
 import axios from '../../services/api';						// Cliente Axios centralizado
-import { getCategoriasProducto } from '../../modules/inventory/services/categoriaProductoService';	// Servicios específicos de familia producto
+import { getCategoriasProducto, deleteCategoriaProducto } from '../../modules/inventory/services/categoriaProductoService';	// Servicios específicos de familia producto
 import { handleError } from '../../utils/handleError';		// Helper para manejar errores
 // 🧩 Componentes comunes
 import ConfirmModal from "../common/ConfirmModal";			// Modal de Confirmación
@@ -96,20 +96,23 @@ const CategoriaProductoTable = () => {
 
 	/**
 	 * Maneja la eliminación de una categoría de producto.
-	 * - Llama a la API para eliminarlo
+	 * - Llama al servicio para eliminarlo
 	 * - Muestra mensaje de éxito o error
 	 * - Refresca la tabla si se elimina correctamente
 	 */
 	const handleDelete = async () => {
+		if (!selectedCategoriaProducto?.id) return;
+
 		try {
-			await axios.delete(`product-families/${selectedCategoriaProducto.id}`);
-			toast.success("Categoría de Producto eliminado correctamente");
+			await deleteCategoriaProducto(selectedCategoriaProducto.id);
+			toast.success("La Categoría de Producto fue eliminada correctamente");
 			setModalOpen(false); // Cierra el modal
 
-			// Refrescar la lista de categorías de producto(Actualiza los datos tras la eliminación).
-			const response = await axios.get("product-families");
-			setRecords(response.data.data);
-			setFilteredCategoriaProducto(response.data.data);
+			// Refrescar la lista de categorías de producto usando el servicio nuevo
+			const response = await getCategoriasProducto();
+			const data = response?.data?.data ?? response?.data ?? [];
+			setRecords(data);
+			setFilteredCategoriaProducto(data);
 
 			// Mensaje amigable para el usuario
 			setError(null); // Borra errores anteriores, si existían
@@ -156,19 +159,19 @@ const CategoriaProductoTable = () => {
 				</span>
 			),
 			cell: ({ row }) => {
-				const familiaProducto = row.original;
+				const categoriaProducto = row.original;
 		
 				return (
 					<div className='flex gap-2 text-gray-300'>
 						<Link
-							to={`/product-families/${familiaProducto.id}`}
+							to={`/categorias-productos/${categoriaProducto.id}`}
 							className='hover:text-amber-400 flex items-center'
 							title="Ver detalles"
 						>
 							<Eye size={18} />
 						</Link>
 						<Link
-							to={`/product-families/${familiaProducto.id}/edit`}
+							to={`/categorias-productos/${categoriaProducto.id}/edit`}
 							className="hover:text-blue-400 flex items-center"
 							title="Editar"
 						>
@@ -178,7 +181,7 @@ const CategoriaProductoTable = () => {
     						className='hover:text-red-400'
     						title="Eliminar"
 							onClick={() => {
-								setSelectedCategoriaProducto(familiaProducto);
+								setSelectedCategoriaProducto(categoriaProducto);
 								setModalOpen(true);
 							}}
 						>
@@ -407,7 +410,7 @@ const CategoriaProductoTable = () => {
 					isOpen={modalOpen}
 					onClose={() => setModalOpen(false)}
 					onConfirm={handleDelete}
-					message={`¿Estás seguro que deseas eliminar Categoría de Producto "${selectedCategoriaProducto?.name}"? Esta acción no se puede deshacer.`}
+					message={`¿Estás seguro que deseas eliminar la Categoría: "${selectedCategoriaProducto?.nombre ?? selectedCategoriaProducto?.name ?? ''}"? Esta acción no se puede deshacer.`}
 				/>
 			</motion.div>
 		</>
