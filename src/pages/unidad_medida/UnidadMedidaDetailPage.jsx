@@ -5,50 +5,50 @@ import dayjs from 'dayjs';                                                  // P
 // 📁 Íconos u otros recursos externos
 import { List, ZoomIn, ArrowLeft, FolderSearch, Sparkles, BadgeCheck, PanelsTopLeft } from "lucide-react";                     // Íconos
 // 🔧 Servicios (API, helpers, utilidades)
-import { getCategoriaProductoById } from '../../modules/inventory/services/categoriaProductoService';
+import { getUnidadMedidaById } from '../../modules/inventory/services/unidadMedidaService';
 // 🧩 Componentes comunes
 import Header from '../../components/common/Header';                        // Título de la sección
 import Breadcrumb from '../../components/common/Breadcrumb';                // Migas de pan para la Ruta de navegación
 // Componentes específicos
 
 /*
- * 🌍 Componente principal para mostrar los detalles de una categoría de producto específica. 
+ * 🌍 Componente principal para mostrar los detalles de una unidad de medida específica. 
 */
-const CategoriaProductoDetailPage = () => {
+const UnidadMedidaDetailPage = () => {
 
-    // 🔁 Obtenemos el `id` desde la URL (ej: /categorias-productos/123)
+    // 🔁 Obtenemos el `id` desde la URL (ej: /unidad-medidas/123)
     const { id } = useParams();
 
     const navigate = useNavigate();
 
-    // 🧠 Estado para guardar la información de la categoria de producto
-    const [categoriaProducto, setCategoriaProducto] = useState(null); // Se inicializa como null mientras se carga
+    // 🧠 Estado para guardar la información de la unidad de medida
+    const [unidadMedida, setUnidadMedida] = useState(null); // Se inicializa como null mientras se carga
 
     // Estado para errores
     const [error, setError] = useState(null);
 
-    const categoriaNombre = categoriaProducto?.name ?? categoriaProducto?.nombre ?? 'Categoría de producto';
-    const estadoValor = String(categoriaProducto?.estado ?? '').trim().toUpperCase();
+    const unidadMedidaNombre = unidadMedida?.nombre ?? unidadMedida?.nombre ?? 'Unidad de medida';
+    const estadoValor = String(unidadMedida?.estado ?? '').trim().toUpperCase();
     const estadoTexto = estadoValor === 'ACTIVO' ? 'Activo' : estadoValor === 'INACTIVO' ? 'Inactivo' : 'No especificado';
     const isActivo = estadoValor === 'ACTIVO';
 
-    // 📡 Petición para obtener los detalles de la categoría de producto
+    // 📡 Petición para obtener los detalles de la unidad de medida
     useEffect(() => {
         if (!id) return;
 
         let isMounted = true;
         setError(null);
 
-        getCategoriaProductoById(id)
+        getUnidadMedidaById(id)
             .then(res => {
                 if (isMounted) {
-                    setCategoriaProducto(res?.data?.data ?? res?.data ?? null);
+                    setUnidadMedida(res?.data?.data ?? res?.data ?? null);
                 }
             })
             .catch(err => {
-                console.error("Error al obtener la categoría de producto: ", err);
+                console.error("Error al obtener la unidad de medida: ", err);
                 if (isMounted) {
-                    setError("No se pudo cargar la información de la categoría de producto. Intenta nuevamente.");
+                    setError("No se pudo cargar la información de la unidad de medida. Intenta nuevamente.");
                 }
             });
 
@@ -58,11 +58,11 @@ const CategoriaProductoDetailPage = () => {
     }, [id]); // Solo se vuelve a ejecutar si cambia el `id` de la URL
 
     // ⏳ Estado de carga
-    if (!categoriaProducto && !error) {
+    if (!unidadMedida && !error) {
         return (
             <div className="flex justify-center items-center h-64 text-white">
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-indigo-500"></div>
-                <span className="ml-4">Cargando información de la categoría de producto...</span>
+                <span className="ml-4">Cargando información de la unidad de medida...</span>
             </div>
         );
     }
@@ -76,16 +76,16 @@ const CategoriaProductoDetailPage = () => {
         );
     }
 
-    // ✅ Si ya se cargaron los datos de la categoría de producto, renderizamos la vista
+    // ✅ Si ya se cargaron los datos de la unidad de medida, renderizamos la vista
     return (
         <div className="flex-1 overflow-auto relative z-10 bg-gray-900">
             {/* 🧭 Header superior de la página(Cabecera con título) */}
-            <Header title={`🔎 Detalles de: ${categoriaProducto?.nombre || 'Categoría de producto'}`} />
+            <Header title={`🔎 Detalles de: ${unidadMedida?.nombre || 'Unidad de medida'}`} />
 
             {/* 🧷 Breadcrumb(Migas de pan para la Ruta de navegación) */}
             <Breadcrumb items={[
-                { label: <><List className="inline w-4 h-4 mr-1"/> Listado</>, href: '/categorias-productos' },
-                { label: <><ZoomIn className="inline w-4 h-4 mr-1"/> Detalles de {categoriaNombre}</> }
+                { label: <><List className="inline w-4 h-4 mr-1"/> Listado</>, href: '/unidades-medida' },
+                { label: <><ZoomIn className="inline w-4 h-4 mr-1"/> Detalles de {unidadMedidaNombre}</> }
             ]} />
 
             {/* 🧾 Contenido principal del detalle */}
@@ -95,8 +95,8 @@ const CategoriaProductoDetailPage = () => {
                         <div className="flex items-start gap-3">
                             <FolderSearch className="w-5 h-5 mt-0.5 text-blue-300" />
                             <div>
-                                <p className="text-sm font-medium">Aquí puedes revisar la información completa de la categoría seleccionada.</p>
-                                <p className="text-sm mt-1 text-blue-100/80">Esta vista te ayuda a confirmar los datos principales antes de editar o compartir la categoría.</p>
+                                <p className="text-sm font-medium">Aquí puedes revisar la información completa de la unidad de medida seleccionada.</p>
+                                <p className="text-sm mt-1 text-blue-100/80">Esta vista te ayuda a confirmar los datos principales antes de editar o compartir la unidad de medida.</p>
                             </div>
                         </div>
                     </div>
@@ -117,17 +117,22 @@ const CategoriaProductoDetailPage = () => {
                                 <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
                                     <div className="rounded-xl border border-gray-700 bg-gray-900/60 p-4">
                                         <p className="text-sm text-gray-400">Nombre</p>
-                                        <p className="mt-1 text-lg font-semibold text-white">{categoriaProducto.nombre}</p>
+                                        <p className="mt-1 text-lg font-semibold text-white">{unidadMedida.nombre}</p>
                                     </div>
 
                                     <div className="rounded-xl border border-gray-700 bg-gray-900/60 p-4">
                                         <p className="text-sm text-gray-400">Sigla</p>
-                                        <p className="mt-1 text-lg font-semibold text-white">{categoriaProducto.sigla || '—'}</p>
+                                        <p className="mt-1 text-lg font-semibold text-white">{unidadMedida.sigla || '—'}</p>
+                                    </div>
+
+                                    <div className="rounded-xl border border-gray-700 bg-gray-900/60 p-4">
+                                        <p className="text-sm text-gray-400">Decimales</p>
+                                        <p className="mt-1 text-lg font-semibold text-white">{unidadMedida.decimal ?? unidadMedida.decimales ?? '—'}</p>
                                     </div>
 
                                     <div className="rounded-xl border border-gray-700 bg-gray-900/60 p-4 lg:col-span-2">
                                         <p className="text-sm text-gray-400">Descripción</p>
-                                        <p className="mt-1 text-sm text-white whitespace-pre-line">{categoriaProducto.descripcion || 'No hay descripción disponible.'}</p>
+                                        <p className="mt-1 text-sm text-white whitespace-pre-line">{unidadMedida.descripcion || 'No hay descripción disponible.'}</p>
                                     </div>
 
                                     <div className="rounded-xl border border-gray-700 bg-gray-900/60 p-4">
@@ -147,12 +152,12 @@ const CategoriaProductoDetailPage = () => {
 
                                     <div className="rounded-xl border border-gray-700 bg-gray-900/60 p-4">
                                         <p className="text-sm text-gray-400">Fecha de creación</p>
-                                        <p className="mt-1 text-sm text-white">{categoriaProducto.created_at ? dayjs(categoriaProducto.created_at).format('DD/MM/YYYY hh:mm:ss A') : ''}</p>
+                                        <p className="mt-1 text-sm text-white">{unidadMedida.created_at ? dayjs(unidadMedida.created_at).format('DD/MM/YYYY hh:mm:ss A') : ''}</p>
                                     </div>
 
                                     <div className="rounded-xl border border-gray-700 bg-gray-900/60 p-4">
                                         <p className="text-sm text-gray-400">Fecha de actualización</p>
-                                        <p className="mt-1 text-sm text-white">{categoriaProducto.updated_at ? dayjs(categoriaProducto.updated_at).format('DD/MM/YYYY hh:mm:ss A') : ''}</p>
+                                        <p className="mt-1 text-sm text-white">{unidadMedida.updated_at ? dayjs(unidadMedida.updated_at).format('DD/MM/YYYY hh:mm:ss A') : ''}</p>
                                     </div>
                                 </div>
                             </section>
@@ -180,7 +185,7 @@ const CategoriaProductoDetailPage = () => {
                                 </div>
 
                                 <button 
-                                    onClick={() => navigate('/categorias-productos')}
+                                    onClick={() => navigate('/unidades-medida')}
                                     className="w-full inline-flex items-center justify-center px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow transition"
                                 >
                                     <ArrowLeft className="w-4 h-4 mr-2" />
@@ -194,4 +199,4 @@ const CategoriaProductoDetailPage = () => {
     )
 }
 
-export default CategoriaProductoDetailPage;
+export default UnidadMedidaDetailPage;

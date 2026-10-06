@@ -11,7 +11,6 @@ import { Search,
 	Eye, 
 	Hash, 
 	Tag, 
-	Type,
 	FileText,
 	Calendar, 
 	RefreshCw, 
@@ -24,7 +23,7 @@ import { useReactTable,
 	flexRender } from '@tanstack/react-table';				// Librería para tablas avanzadas con React
 // 🔧 Servicios (API, helpers, utilidades)
 //import axios from '../../services/api';						// Cliente Axios centralizado
-import { getCategoriasProducto, deleteCategoriaProducto } from '../../modules/inventory/services/categoriaProductoService';	// Servicios específicos de familia producto
+import { getMarcas, deleteMarca } from '../../modules/inventory/services/marcaService';	// Servicios específicos de marcas
 import { handleError } from '../../utils/handleError';		// Helper para manejar errores
 // 🧩 Componentes comunes
 import ConfirmModal from "../common/ConfirmModal";			// Modal de Confirmación
@@ -32,9 +31,9 @@ import ConfirmModal from "../common/ConfirmModal";			// Modal de Confirmación
 
 
 /**
- * Componente que renderiza una tabla de categorías de productos con búsqueda, ordenamiento y paginación.
+ * Componente que renderiza una tabla de marcas con búsqueda, ordenamiento y paginación.
  */
-const CategoriaProductoTable = () => {
+const MarcaTable = () => {
 	// Estado para el término de búsqueda
 	const [searchTerm, setSearchTerm] = useState("");
 
@@ -42,7 +41,7 @@ const CategoriaProductoTable = () => {
     const [records, setRecords] = useState([]);
 
 	// Estado que contiene los registros filtrados (por búsqueda), inicializado con un array vacío.
-    const [filteredCategoriaProducto, setFilteredCategoriaProducto] = useState([]);
+    const [filteredMarca, setFilteredMarca] = useState([]);
 
 	// Estado para manejar la animación del loader mientras se obtienen los datos
 	const [loading, setLoading] = useState(true);
@@ -56,8 +55,8 @@ const CategoriaProductoTable = () => {
 	// Estado que controla si el modal de confirmación está abierto o cerrado
 	const [modalOpen, setModalOpen] = useState(false);
 
-	// Estado que guarda categoría de producto seleccionada para eliminar (usado al abrir el modal)
-	const [selectedCategoriaProducto, setSelectedCategoriaProducto] = useState(null);
+	// Estado que guarda marca seleccionada para eliminar (usado al abrir el modal)
+	const [selectedMarca, setSelectedMarca] = useState(null);
 
 	/**
 	 * useEffect que se ejecuta una sola vez al montar el componente.
@@ -67,12 +66,12 @@ const CategoriaProductoTable = () => {
 		setLoading(true); // Mostrar el loader antes de iniciar la carga
 		setError(null); // Limpiar error anterior antes de la nueva carga
 
-		// Llamada al servicio para obtener todas las categorías de productos
-		getCategoriasProducto()
+		// Llamada al servicio para obtener todas las marcas
+		getMarcas()
 			.then(response => {
 				if (response.data.success) {
 					setRecords(response.data.data);
-					setFilteredCategoriaProducto(response.data.data);
+					setFilteredMarca(response.data.data);
 				} else {
 					throw new Error("No pudimos obtener los datos. Intenta nuevamente.");
 				}
@@ -85,53 +84,53 @@ const CategoriaProductoTable = () => {
 
 	/**
 	 * Filtra la tabla en tiempo real con base al término de búsqueda.
-	 * Filtra por el campo "nombre" (nombre de la categoría de producto).
+	 * Filtra por el campo "nombre" (nombre de la marca).
 	 */
 	const handleSearch = (e) => {
 		const term = e.target.value.toLowerCase();
 		setSearchTerm(term);
 
-		const filtered = records.filter((categoriaProducto) => {
+		const filtered = records.filter((marca) => {
 			return [
-				categoriaProducto.nombre,
-				categoriaProducto.descripcion,
-				categoriaProducto.sigla,
+				marca.nombre,
+				marca.descripcion,
+				marca.abreviatura,
 			].some((value) =>
 				typeof value === 'string' && value.toLowerCase().includes(term)
 			);
 		});
-		setFilteredCategoriaProducto(filtered);
+		setFilteredMarca(filtered);
 	};
 
 	/**
-	 * Maneja la eliminación de una categoría de producto.
+	 * Maneja la eliminación de una marca.
 	 * - Llama al servicio para eliminarlo
 	 * - Muestra mensaje de éxito o error
 	 * - Refresca la tabla si se elimina correctamente
 	 */
 	const handleDelete = async () => {
-		if (!selectedCategoriaProducto?.id) return;
+		if (!selectedMarca?.id) return;
 
 		try {
-			// Llamada al servicio para eliminar la categoría de producto
-			await deleteCategoriaProducto(selectedCategoriaProducto.id);
+			// Llamada al servicio para eliminar la marca
+			await deleteMarca(selectedMarca.id);
 			
 			// Mostrar mensaje de éxito y cerrar el modal después de un breve retraso
-			toast.success("La Categoría de Producto fue eliminada correctamente", { duration: 2500 });
+			toast.success("La Marca fue eliminada correctamente", { duration: 2500 });
 			await new Promise((resolve) => setTimeout(resolve, 1200));
 			setModalOpen(false); // Cierra el modal
 
-			// Refrescar la lista de categorías de producto usando el servicio
-			const response = await getCategoriasProducto();
+			// Refrescar la lista de marcas usando el servicio
+			const response = await getMarcas();
 			const data = response?.data?.data ?? response?.data ?? [];
 			setRecords(data);
-			setFilteredCategoriaProducto(data);
+			setFilteredMarca(data);
 
 			// Mensaje amigable para el usuario
 			setError(null); // Borra errores anteriores, si existían
 		} catch (error) {
-			console.error("Error al eliminar Categoría de Producto:", error?.response?.data || error.message || error);
-			setError("No se pudo eliminar la Categoría de Producto. Verifica tu conexión o intenta más tarde.");
+			console.error("Error al eliminar Marca:", error?.response?.data || error.message || error);
+			setError("No se pudo eliminar la Marca. Verifica tu conexión o intenta más tarde.");
 		}
 	};
 
@@ -172,19 +171,19 @@ const CategoriaProductoTable = () => {
 				</span>
 			),
 			cell: ({ row }) => {
-				const categoriaProducto = row.original;
+				const marca = row.original;
 		
 				return (
 					<div className='flex gap-2 text-gray-300'>
 						<Link
-							to={`/categorias-productos/${categoriaProducto.id}`}
+							to={`/marcas/${marca.id}`}
 							className='hover:text-amber-400 flex items-center'
 							title="Ver detalles"
 						>
 							<Eye size={18} />
 						</Link>
 						<Link
-							to={`/categorias-productos/${categoriaProducto.id}/edit`}
+							to={`/marcas/${marca.id}/edit`}
 							className="hover:text-blue-400 flex items-center"
 							title="Editar"
 						>
@@ -194,7 +193,7 @@ const CategoriaProductoTable = () => {
     						className='hover:text-red-400'
     						title="Eliminar"
 							onClick={() => {
-								setSelectedCategoriaProducto(categoriaProducto);
+								setSelectedMarca(marca);
 								setModalOpen(true);
 							}}
 						>
@@ -217,16 +216,16 @@ const CategoriaProductoTable = () => {
 			accessorKey: 'nombre',
 			header: () => (
 				<span className="flex items-center gap-1">
-					<Tag size={16} /> Nombre categoría
+					<Tag size={16} /> Nombre marca
 				</span>
 			),
 			cell: (info) => <div className='text-sm text-gray-300'>{info.getValue()}</div>,
 		},
 		{
-			accessorKey: 'sigla',
+			accessorKey: 'abreviatura',
 			header: () => (
 				<span className="flex items-center gap-1">
-					<Hash size={16} /> Sigla
+					<Hash size={16} /> Abreviatura
 				</span>
 			),
 			cell: (info) => <div className='text-sm text-gray-300 min-w-[90px]'>{info.getValue() ?? '-'}</div>,
@@ -277,7 +276,7 @@ const CategoriaProductoTable = () => {
 	 * Permite manejar ordenamiento, paginación y renderizado.
 	 */
 	const table = useReactTable({
-		data: filteredCategoriaProducto,
+		data: filteredMarca,
 		columns,
 		state: {
 			sorting,
@@ -317,9 +316,9 @@ const CategoriaProductoTable = () => {
 	if (!loading && records.length === 0) {		
         return (
             <div className="bg-blue-500/10 border border-blue-500 text-blue-400 p-4 rounded">
-                📦 Aún no hay Categorías de Productos registradas.
+                📦 Aún no hay Marcas registradas.
                 <Link
-                    to="/categorias-productos/create"
+                    to="/marcas/create"
                     className="ml-2 underline text-blue-300"
                 >
                     Crear nueva
@@ -353,7 +352,7 @@ const CategoriaProductoTable = () => {
 			>
 				{/* Titulo de la pagina y buscador */}
 				<div className='flex justify-between items-center mb-6'>
-					<h2 className='text-xl font-semibold text-gray-100'>📦 Administrar Categorías de Productos</h2>
+					<h2 className='text-xl font-semibold text-gray-100'>📦 Administrar Marcas</h2>
 					<div className='relative'>
 						<input
 							type='text'
@@ -366,7 +365,7 @@ const CategoriaProductoTable = () => {
 					</div>
 				</div>
 
-				{/* Tabla de datos(Categorías de Productos) */}
+				{/* Tabla de datos(Marcas) */}
 				<div className='overflow-x-auto'>
 					<table className='min-w-full divide-y divide-gray-700'>
 						<thead>
@@ -442,11 +441,11 @@ const CategoriaProductoTable = () => {
 					isOpen={modalOpen}
 					onClose={() => setModalOpen(false)}
 					onConfirm={handleDelete}
-					message={`¿Estás seguro que deseas eliminar la Categoría: "${selectedCategoriaProducto?.nombre ?? selectedCategoriaProducto?.name ?? ''}"? Esta acción no se puede deshacer.`}
+					message={`¿Estás seguro que deseas eliminar la Marca: "${selectedMarca?.nombre ?? selectedMarca?.name ?? ''}"? Esta acción no se puede deshacer.`}
 				/>
 			</motion.div>
 		</>
 	);
 };
 
-export default CategoriaProductoTable;
+export default MarcaTable;

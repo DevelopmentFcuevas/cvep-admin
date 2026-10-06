@@ -9,20 +9,20 @@ import { Home, List, Plus, PackageOpen, FolderTree } from "lucide-react";       
 import Header from '../../components/common/Header';                            // Título de la sección
 import Breadcrumb from '../../components/common/Breadcrumb';                    // Migas de pan para la Ruta de navegación
 // Componentes específicos
-import CategoriaProductoTable from '../../components/categoria_producto/CategoriaProductoTable';// Tabla de datos (ahora de categorías de producto) con paginación, búsqueda y acciones CRUD
+import MarcaTable from '../../components/marca/MarcaTable';// Tabla de datos (ahora de marcas) con paginación, búsqueda y acciones CRUD
 
 
 /**
- * Página principal que muestra el listado de categorías de producto.
+ * Página principal que muestra el listado de marcas.
  * Se encarga de obtener datos desde la API, y una tabla interactiva.
  */
-const CategoriaProductoListPage = () => {
+const MarcaListPage = () => {
 
     return (
         <div className='flex-1 overflow-auto relative z-10'>
             
             {/* 🧭 Header superior de la página(Cabecera con título) */}
-            <Header title='📋 Listado de Categorías de Productos' />
+            <Header title='📋 Listado de Marcas' />
 
             {/* 🧷 Breadcrumb(Migas de pan para la Ruta de navegación) */}
             <Breadcrumb items={[
@@ -33,17 +33,17 @@ const CategoriaProductoListPage = () => {
             {/* Contenido principal */}
             <main className=' max-w-7xl mx-auto py-6 px-4 lg:px-8 '>
 
-                {/* Botón para agregar nueva categoría de producto */}
+                {/* Botón para agregar nueva marca */}
                 <div className="flex justify-end mb-4">
                     <Link
-                        to="/categorias-productos/create"
+                        to="/marcas/create"
                         className="flex items-center overflow-hidden rounded-lg shadow bg-blue-600 hover:bg-blue-700 transition"
                     >
                         <span className="px-3 bg-blue-700 flex items-center">
                             <Plus size={18} />
                         </span>
                         <span className="px-4 py-2 font-semibold text-white">
-                            Crear Categoría de Producto
+                            Crear Marca
                         </span>
                     </Link>
                 </div>
@@ -53,18 +53,18 @@ const CategoriaProductoListPage = () => {
                     <div className="flex items-start gap-3">
                         <FolderTree className="w-5 h-5 mt-0.5 text-blue-300" />
                         <div>
-                            <p className="text-sm font-medium">Aquí puedes ver, organizar y administrar todas las categorías que agrupan tus productos.</p>
-                            <p className="text-sm mt-1 text-blue-100/80">Usa esta vista para revisar el estado de cada categoría y crear nuevas cuando sea necesario.</p>
+                            <p className="text-sm font-medium">Aquí puedes ver, organizar y administrar todas las marcas que agrupan tus productos.</p>
+                            <p className="text-sm mt-1 text-blue-100/80">Usa esta vista para revisar el estado de cada marca y crear nuevas cuando sea necesario.</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Tabla con datos detallados de categoría de producto */}
-                <CategoriaProductoTable />
+                {/* Tabla con datos detallados de marcas */}
+                <MarcaTable />
             </main>
 
         </div>
     )
 }
 
-export default CategoriaProductoListPage;
+export default MarcaListPage;

@@ -11,7 +11,6 @@ import { Search,
 	Eye, 
 	Hash, 
 	Tag, 
-	Type,
 	FileText,
 	Calendar, 
 	RefreshCw, 
@@ -23,8 +22,7 @@ import { useReactTable,
 	getPaginationRowModel, 
 	flexRender } from '@tanstack/react-table';				// Librería para tablas avanzadas con React
 // 🔧 Servicios (API, helpers, utilidades)
-//import axios from '../../services/api';						// Cliente Axios centralizado
-import { getCategoriasProducto, deleteCategoriaProducto } from '../../modules/inventory/services/categoriaProductoService';	// Servicios específicos de familia producto
+import { getProductos, deleteProducto } from '../../modules/inventory/services/productoService';	// Servicios específicos de productos
 import { handleError } from '../../utils/handleError';		// Helper para manejar errores
 // 🧩 Componentes comunes
 import ConfirmModal from "../common/ConfirmModal";			// Modal de Confirmación
@@ -32,9 +30,9 @@ import ConfirmModal from "../common/ConfirmModal";			// Modal de Confirmación
 
 
 /**
- * Componente que renderiza una tabla de categorías de productos con búsqueda, ordenamiento y paginación.
+ * Componente que renderiza una tabla de productos con búsqueda, ordenamiento y paginación.
  */
-const CategoriaProductoTable = () => {
+const ProductoTable = () => {
 	// Estado para el término de búsqueda
 	const [searchTerm, setSearchTerm] = useState("");
 
@@ -42,7 +40,7 @@ const CategoriaProductoTable = () => {
     const [records, setRecords] = useState([]);
 
 	// Estado que contiene los registros filtrados (por búsqueda), inicializado con un array vacío.
-    const [filteredCategoriaProducto, setFilteredCategoriaProducto] = useState([]);
+    const [filteredProducto, setFilteredProducto] = useState([]);
 
 	// Estado para manejar la animación del loader mientras se obtienen los datos
 	const [loading, setLoading] = useState(true);
@@ -56,8 +54,8 @@ const CategoriaProductoTable = () => {
 	// Estado que controla si el modal de confirmación está abierto o cerrado
 	const [modalOpen, setModalOpen] = useState(false);
 
-	// Estado que guarda categoría de producto seleccionada para eliminar (usado al abrir el modal)
-	const [selectedCategoriaProducto, setSelectedCategoriaProducto] = useState(null);
+	// Estado que guarda producto seleccionado para eliminar (usado al abrir el modal)
+	const [selectedProducto, setSelectedProducto] = useState(null);
 
 	/**
 	 * useEffect que se ejecuta una sola vez al montar el componente.
@@ -67,12 +65,12 @@ const CategoriaProductoTable = () => {
 		setLoading(true); // Mostrar el loader antes de iniciar la carga
 		setError(null); // Limpiar error anterior antes de la nueva carga
 
-		// Llamada al servicio para obtener todas las categorías de productos
-		getCategoriasProducto()
+		// Llamada al servicio para obtener todos los productos
+		getProductos()
 			.then(response => {
 				if (response.data.success) {
 					setRecords(response.data.data);
-					setFilteredCategoriaProducto(response.data.data);
+					setFilteredProducto(response.data.data);
 				} else {
 					throw new Error("No pudimos obtener los datos. Intenta nuevamente.");
 				}
@@ -85,53 +83,53 @@ const CategoriaProductoTable = () => {
 
 	/**
 	 * Filtra la tabla en tiempo real con base al término de búsqueda.
-	 * Filtra por el campo "nombre" (nombre de la categoría de producto).
+	 * Filtra por el campo "nombre" (nombre del producto).
 	 */
 	const handleSearch = (e) => {
 		const term = e.target.value.toLowerCase();
 		setSearchTerm(term);
 
-		const filtered = records.filter((categoriaProducto) => {
+		const filtered = records.filter((producto) => {
 			return [
-				categoriaProducto.nombre,
-				categoriaProducto.descripcion,
-				categoriaProducto.sigla,
+				producto.nombre,
+				producto.modelo,
+				producto.serie,
 			].some((value) =>
 				typeof value === 'string' && value.toLowerCase().includes(term)
 			);
 		});
-		setFilteredCategoriaProducto(filtered);
+		setFilteredProducto(filtered);
 	};
 
 	/**
-	 * Maneja la eliminación de una categoría de producto.
+	 * Maneja la eliminación de un producto.
 	 * - Llama al servicio para eliminarlo
 	 * - Muestra mensaje de éxito o error
 	 * - Refresca la tabla si se elimina correctamente
 	 */
 	const handleDelete = async () => {
-		if (!selectedCategoriaProducto?.id) return;
+		if (!selectedProducto?.id) return;
 
 		try {
-			// Llamada al servicio para eliminar la categoría de producto
-			await deleteCategoriaProducto(selectedCategoriaProducto.id);
+			// Llamada al servicio para eliminar el producto
+			await deleteProducto(selectedProducto.id);
 			
 			// Mostrar mensaje de éxito y cerrar el modal después de un breve retraso
-			toast.success("La Categoría de Producto fue eliminada correctamente", { duration: 2500 });
+			toast.success("El Producto fue eliminado correctamente", { duration: 2500 });
 			await new Promise((resolve) => setTimeout(resolve, 1200));
 			setModalOpen(false); // Cierra el modal
 
-			// Refrescar la lista de categorías de producto usando el servicio
-			const response = await getCategoriasProducto();
+			// Refrescar la lista de productos usando el servicio
+			const response = await getProductos();
 			const data = response?.data?.data ?? response?.data ?? [];
 			setRecords(data);
-			setFilteredCategoriaProducto(data);
+			setFilteredProducto(data);
 
 			// Mensaje amigable para el usuario
 			setError(null); // Borra errores anteriores, si existían
 		} catch (error) {
-			console.error("Error al eliminar Categoría de Producto:", error?.response?.data || error.message || error);
-			setError("No se pudo eliminar la Categoría de Producto. Verifica tu conexión o intenta más tarde.");
+			console.error("Error al eliminar Producto:", error?.response?.data || error.message || error);
+			setError("No se pudo eliminar el Producto. Verifica tu conexión o intenta más tarde.");
 		}
 	};
 
@@ -172,19 +170,19 @@ const CategoriaProductoTable = () => {
 				</span>
 			),
 			cell: ({ row }) => {
-				const categoriaProducto = row.original;
+				const producto = row.original;
 		
 				return (
 					<div className='flex gap-2 text-gray-300'>
 						<Link
-							to={`/categorias-productos/${categoriaProducto.id}`}
+							to={`/productos/${producto.id}`}
 							className='hover:text-amber-400 flex items-center'
 							title="Ver detalles"
 						>
 							<Eye size={18} />
 						</Link>
 						<Link
-							to={`/categorias-productos/${categoriaProducto.id}/edit`}
+							to={`/productos/${producto.id}/edit`}
 							className="hover:text-blue-400 flex items-center"
 							title="Editar"
 						>
@@ -194,7 +192,7 @@ const CategoriaProductoTable = () => {
     						className='hover:text-red-400'
     						title="Eliminar"
 							onClick={() => {
-								setSelectedCategoriaProducto(categoriaProducto);
+								setSelectedProducto(producto);
 								setModalOpen(true);
 							}}
 						>
@@ -217,26 +215,136 @@ const CategoriaProductoTable = () => {
 			accessorKey: 'nombre',
 			header: () => (
 				<span className="flex items-center gap-1">
-					<Tag size={16} /> Nombre categoría
+					<Tag size={16} /> Nombre
 				</span>
 			),
 			cell: (info) => <div className='text-sm text-gray-300'>{info.getValue()}</div>,
 		},
 		{
-			accessorKey: 'sigla',
+			accessorKey: 'marca_id',
 			header: () => (
 				<span className="flex items-center gap-1">
-					<Hash size={16} /> Sigla
+					<Hash size={16} /> Marca
 				</span>
 			),
 			cell: (info) => <div className='text-sm text-gray-300 min-w-[90px]'>{info.getValue() ?? '-'}</div>,
 			meta: { width: '110px' },
 		},
 		{
+			accessorKey: 'codigo_barras',
+			header: () => (
+				<span className="flex items-center gap-1">
+					<FileText size={16} /> Código de barras
+				</span>
+			),
+			cell: (info) => <div className='text-sm text-gray-300 min-w-[220px] max-w-[350px] truncate'>{info.getValue() ?? '-'}</div>,
+			meta: { width: '280px' },
+		},
+		{
 			accessorKey: 'descripcion',
 			header: () => (
 				<span className="flex items-center gap-1">
 					<FileText size={16} /> Descripción
+				</span>
+			),
+			cell: (info) => <div className='text-sm text-gray-300 min-w-[220px] max-w-[350px] truncate'>{info.getValue() ?? '-'}</div>,
+			meta: { width: '280px' },
+		},
+		{
+			accessorKey: 'descripcion',
+			header: () => (
+				<span className="flex items-center gap-1">
+					<FileText size={16} /> Descripción
+				</span>
+			),
+			cell: (info) => <div className='text-sm text-gray-300 min-w-[220px] max-w-[350px] truncate'>{info.getValue() ?? '-'}</div>,
+			meta: { width: '280px' },
+		},
+		{
+			accessorKey: 'modelo',
+			header: () => (
+				<span className="flex items-center gap-1">
+					<FileText size={16} /> Modelo
+				</span>
+			),
+			cell: (info) => <div className='text-sm text-gray-300 min-w-[220px] max-w-[350px] truncate'>{info.getValue() ?? '-'}</div>,
+			meta: { width: '280px' },
+		},
+		{
+			accessorKey: 'serie',
+			header: () => (
+				<span className="flex items-center gap-1">
+					<FileText size={16} /> Serie
+				</span>
+			),
+			cell: (info) => <div className='text-sm text-gray-300 min-w-[220px] max-w-[350px] truncate'>{info.getValue() ?? '-'}</div>,
+			meta: { width: '280px' },
+		},
+		{
+			accessorKey: 'notas',
+			header: () => (
+				<span className="flex items-center gap-1">
+					<FileText size={16} /> Notas
+				</span>
+			),
+			cell: (info) => <div className='text-sm text-gray-300 min-w-[220px] max-w-[350px] truncate'>{info.getValue() ?? '-'}</div>,
+			meta: { width: '280px' },
+		},
+		{
+			accessorKey: 'peso',
+			header: () => (
+				<span className="flex items-center gap-1">
+					<FileText size={16} /> Peso
+				</span>
+			),
+			cell: (info) => <div className='text-sm text-gray-300 min-w-[220px] max-w-[350px] truncate'>{info.getValue() ?? '-'}</div>,
+			meta: { width: '280px' },
+		},
+		{
+			accessorKey: 'volumen',
+			header: () => (
+				<span className="flex items-center gap-1">
+					<FileText size={16} /> Volumen
+				</span>
+			),
+			cell: (info) => <div className='text-sm text-gray-300 min-w-[220px] max-w-[350px] truncate'>{info.getValue() ?? '-'}</div>,
+			meta: { width: '280px' },
+		},
+		{
+			accessorFn: (row) => row.color?.nombre ?? row.color_nombre ?? row.color_id ?? '-',
+			header: () => (
+				<span className="flex items-center gap-1">
+					<FileText size={16} /> Color
+				</span>
+			),
+			cell: (info) => <div className='text-sm text-gray-300 min-w-[220px] max-w-[350px] truncate'>{info.getValue() ?? '-'}</div>,
+			meta: { width: '280px' },
+		},
+		{
+			accessorKey: 'pais_id',
+			header: () => (
+				<span className="flex items-center gap-1">
+					<FileText size={16} /> País
+				</span>
+			),
+			cell: (info) => <div className='text-sm text-gray-300 min-w-[220px] max-w-[350px] truncate'>{info.getValue() ?? '-'}</div>,
+			meta: { width: '280px' },
+		},
+		{
+			accessorKey: 'categoria_producto_id',
+			header: () => (
+				<span className="flex items-center gap-1">
+					<FileText size={16} /> Categoría
+				</span>
+			),
+			cell: (info) => <div className='text-sm text-gray-300 min-w-[220px] max-w-[350px] truncate'>{info.getValue() ?? '-'}</div>,
+			meta: { width: '280px' },
+		},
+		{
+			accessorKey: 'unidad_medida_id',
+			header: () => (
+				<span className="flex items-center gap-1">
+					<FileText size={16} /> Unidad de Medida
 				</span>
 			),
 			cell: (info) => <div className='text-sm text-gray-300 min-w-[220px] max-w-[350px] truncate'>{info.getValue() ?? '-'}</div>,
@@ -277,7 +385,7 @@ const CategoriaProductoTable = () => {
 	 * Permite manejar ordenamiento, paginación y renderizado.
 	 */
 	const table = useReactTable({
-		data: filteredCategoriaProducto,
+		data: filteredProducto,
 		columns,
 		state: {
 			sorting,
@@ -317,12 +425,12 @@ const CategoriaProductoTable = () => {
 	if (!loading && records.length === 0) {		
         return (
             <div className="bg-blue-500/10 border border-blue-500 text-blue-400 p-4 rounded">
-                📦 Aún no hay Categorías de Productos registradas.
+                📦 Aún no hay Productos registrados.
                 <Link
-                    to="/categorias-productos/create"
+                    to="/productos/create"
                     className="ml-2 underline text-blue-300"
                 >
-                    Crear nueva
+                    Crear nuevo Producto
                 </Link>
             </div>
         );
@@ -353,7 +461,7 @@ const CategoriaProductoTable = () => {
 			>
 				{/* Titulo de la pagina y buscador */}
 				<div className='flex justify-between items-center mb-6'>
-					<h2 className='text-xl font-semibold text-gray-100'>📦 Administrar Categorías de Productos</h2>
+					<h2 className='text-xl font-semibold text-gray-100'>📦 Administrar Productos</h2>
 					<div className='relative'>
 						<input
 							type='text'
@@ -366,7 +474,7 @@ const CategoriaProductoTable = () => {
 					</div>
 				</div>
 
-				{/* Tabla de datos(Categorías de Productos) */}
+				{/* Tabla de datos(Productos) */}
 				<div className='overflow-x-auto'>
 					<table className='min-w-full divide-y divide-gray-700'>
 						<thead>
@@ -442,11 +550,11 @@ const CategoriaProductoTable = () => {
 					isOpen={modalOpen}
 					onClose={() => setModalOpen(false)}
 					onConfirm={handleDelete}
-					message={`¿Estás seguro que deseas eliminar la Categoría: "${selectedCategoriaProducto?.nombre ?? selectedCategoriaProducto?.name ?? ''}"? Esta acción no se puede deshacer.`}
+					message={`¿Estás seguro que deseas eliminar el Producto: "${selectedProducto?.nombre ?? selectedProducto?.name ?? ''}"? Esta acción no se puede deshacer.`}
 				/>
 			</motion.div>
 		</>
 	);
 };
 
-export default CategoriaProductoTable;
+export default ProductoTable;

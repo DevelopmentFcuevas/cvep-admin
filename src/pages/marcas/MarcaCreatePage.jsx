@@ -12,8 +12,7 @@ import { List,
     Lightbulb, 
     BadgeCheck } from "lucide-react";                                                 // Íconos
 // 🔧 Servicios (API, helpers, utilidades)
-//import axios from '../../services/api';                                             // Cliente Axios centralizado
-import { createCategoriaProducto } from '../../modules/inventory/services/categoriaProductoService'; // Servicio para crear familia-producto
+import { createMarca } from '../../modules/inventory/services/marcaService'; // Servicio para crear familia-producto
 import { handleError } from '../../utils/handleError';                              // Helper global para manejar errores
 // 🧩 Componentes comunes
 import Header from '../../components/common/Header';                                // Título de la sección
@@ -22,19 +21,19 @@ import Section from '../../components/common/Section';
 // Componentes específicos
 
 const FORM_FIELDS = [
-    { name: 'nombre', label: 'Nombre de la categoría', placeholder: 'Ej: Útiles de oficina', maxLength: 255, description: 'Nombre que identifica la categoría dentro del sistema.', autoFocus: true },
-    { name: 'descripcion', label: 'Descripción de la categoría', placeholder: 'Ej: Categoría de productos para uso en el área de oficina', maxLength: 255, description: 'Descripción de la categoría.', autoFocus: false },
-    { name: 'sigla', label: 'Sigla de la categoría', placeholder: 'Ej: UO', maxLength: 10, description: 'Sigla que representa la categoría.', autoFocus: false },
+    { name: 'nombre', label: 'Nombre de la marca', placeholder: 'Ej: Universal Office', maxLength: 255, description: 'Nombre que identifica la marca dentro del sistema.', autoFocus: true },
+    { name: 'descripcion', label: 'Descripción de la marca', placeholder: 'Ej: Marca de productos para uso en el área de oficina', maxLength: 255, description: 'Descripción de la marca.', autoFocus: false },
+    { name: 'abreviatura', label: 'Abreviatura de la marca', placeholder: 'Ej: UO', maxLength: 10, description: 'Abreviatura que representa la marca.', autoFocus: false },
 ];
 
 // Función para crear el estado inicial del formulario basado en los campos definidos
 const createInitialFormState = () => Object.fromEntries(FORM_FIELDS.map(({ name }) => [name, '']));
 
 /**
- * Página Crear Categoría de Productos que muestra el formulario de categoría de productos.
- * Se encarga de guardar datos de Categoría de Producto hacia la API.
+ * Página Crear Marcas que muestra el formulario de marca.
+ * Se encarga de guardar datos de Marca hacia la API.
  */
-const CategoriaProductoCreatePage = () => {
+const MarcaCreatePage = () => {
 
     // Hook de navegación para redirigir a otras páginas
     const navigate = useNavigate();
@@ -42,7 +41,7 @@ const CategoriaProductoCreatePage = () => {
     // Estado para mostrar mensajes globales al usuario (éxito o error)
     const [message, setMessage] = useState({ type: '', text: '' });
     
-    // 📊 Estado del formulario con los campos de categoría-producto a crear.
+    // 📊 Estado del formulario con los campos de marca a crear.
     // Este estado mantiene los valores que el usuario ingresa en el formulario.
     const [form, setForm] = useState(createInitialFormState);
 
@@ -70,19 +69,19 @@ const CategoriaProductoCreatePage = () => {
         // Helper para detectar solo espacios o strings vacíos
         const isBlank = (value) => !value || value.trim() === '';
 
-        // Nombre de la categoría (obligatorio, solo letras, espacios y guiones)
+        // Nombre de la marca (obligatorio, solo letras, espacios y guiones)
         if (isBlank(form.nombre)) {
-            newErrors.nombre = 'Por favor, ingresa el nombre de la categoría.';
+            newErrors.nombre = 'Por favor, ingresa el nombre de la marca.';
         } else if (!/^[\p{L}\s'-]{2,255}$/u.test(form.nombre.trim())) {
-            newErrors.nombre = 'El nombre de la categoría contiene caracteres inválidos o excede los 255 caracteres.';
+            newErrors.nombre = 'El nombre de la marca contiene caracteres inválidos o excede los 255 caracteres.';
         }
 
         if (form.descripcion && form.descripcion.trim().length > 255) {
             newErrors.descripcion = 'La descripción no puede exceder los 255 caracteres.';
         }
 
-        if (form.sigla && form.sigla.trim().length > 10) {
-            newErrors.sigla = 'La sigla no puede exceder los 10 caracteres.';
+        if (form.abreviatura && form.abreviatura.trim().length > 10) {
+            newErrors.abreviatura = 'La abreviatura no puede exceder los 10 caracteres.';
         }
     
         setErrors(newErrors);
@@ -118,12 +117,12 @@ const CategoriaProductoCreatePage = () => {
                 ])
             );
 
-            await createCategoriaProducto(sanitizedForm);
+            await createMarca(sanitizedForm);
             setMessage({ 
                 type: 'success', 
-                text: '¡El registro de Categoría de productos se creó correctamente!' 
+                text: '¡El registro de Marca se creó correctamente!' 
             });
-            setTimeout(() => navigate('/categorias-productos'), 1500);
+            setTimeout(() => navigate('/marcas'), 1500);
         } catch (error) {
             // Usar el helper global para traducir el error en un mensaje amigable
             const mensajeAmigable = handleError(error);
@@ -140,25 +139,25 @@ const CategoriaProductoCreatePage = () => {
     return (
         <div className='flex-1 overflow-auto relative z-10 bg-gray-900'>
             {/* 🧭 Header superior de la página(Cabecera con título) */}
-            <Header title='➕ Crear Categoría de Producto' />
+            <Header title='➕ Crear Marca' />
 
             {/* 🧷 Breadcrumb(Migas de pan para la Ruta de navegación) */}
             <Breadcrumb items={[
-                { label: <><List className="inline w-4 h-4 mr-1"/> Listado</>, href: '/categorias-productos' },
+                { label: <><List className="inline w-4 h-4 mr-1"/> Listado</>, href: '/marcas' },
                 { label: <><Plus className="inline w-4 h-4 mr-1"/> Crear</> }
             ]} />
 
             {/* 🧾 Formulario */}
 			<main className='max-w-7xl mx-auto py-6 px-4 lg:px-8'>
-                <Section icon={FolderPlus} title="📝 Datos de la Categoría" description="Completa el formulario para crear una nueva categoría de productos.">
+                <Section icon={FolderPlus} title="📝 Datos de la Marca" description="Completa el formulario para crear una nueva marca.">
                     
                     {/* Mensaje informativo sobre la sección */}
                     <div className="bg-blue-600/10 border border-blue-500 text-blue-200 p-4 rounded mb-6">
                         <div className="flex items-start gap-3">
                             <Sparkles className="w-5 h-5 mt-0.5 text-blue-300" />
                             <div>
-                                <p className="text-sm font-medium">Aquí puedes crear categorías para organizar tus productos de forma clara y ordenada.</p>
-                                <p className="text-sm mt-1 text-blue-100/80">Ejemplos: útiles de oficina, suministros, repuestos o productos de temporada.</p>
+                                <p className="text-sm font-medium">Aquí puedes crear marcas para organizar tus productos de forma clara y ordenada.</p>
+                                <p className="text-sm mt-1 text-blue-100/80">Ejemplos: Nike, Adidas, Reebok</p>
                             </div>
                         </div>
                     </div>
@@ -182,11 +181,11 @@ const CategoriaProductoCreatePage = () => {
                                             <div>
                                                 <h3 className="text-sm font-semibold text-white">Información básica</h3>
                                                 <p className="text-sm text-gray-400 mt-1">
-                                                    Define la categoría.
+                                                    Define la marca.
                                                 </p>
                                             </div>
                                             <span className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-indigo-300">
-                                                Formulario de Categoría
+                                                Formulario de Marca
                                             </span>
                                         </div>
 
@@ -220,19 +219,6 @@ const CategoriaProductoCreatePage = () => {
                                                 ))}
                                             </div>
 
-                                            {/* <div className="rounded-xl border border-gray-700 bg-gray-800/70 p-4">
-                                                <h4 className="text-sm font-semibold text-gray-100">Buen uso</h4>
-                                                <p className="mt-2 text-sm text-gray-400">
-                                                    Usa nombres claros y consistentes para facilitar la búsqueda y el mantenimiento del catálogo.
-                                                </p>
-                                            </div> */}
-
-                                            {/* <div className="rounded-xl border border-dashed border-gray-600 bg-gray-800/50 p-4">
-                                                <h4 className="text-sm font-semibold text-gray-100">Preparado para crecer</h4>
-                                                <p className="mt-2 text-sm text-gray-400">
-                                                    Cuando agregues más campos, esta grilla los acomodará de forma limpia y balanceada.
-                                                </p>
-                                            </div> */}
                                         </div>
                                     </section>
                                 </div>
@@ -243,7 +229,7 @@ const CategoriaProductoCreatePage = () => {
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <button
                                             type="button"
-                                            onClick={() => navigate('/categorias-productos')}
+                                            onClick={() => navigate('/marcas')}
                                             disabled={loading}
                                             className="flex items-center gap-2 bg-slate-500 hover:bg-slate-600 text-white px-4 py-2 rounded-lg disabled:opacity-60 disabled:cursor-not-allowed"
                                         >
@@ -265,7 +251,7 @@ const CategoriaProductoCreatePage = () => {
                                             className='bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold shadow-md transition flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed'
                                         >
                                             <Save size={18}/>
-                                            {loading ? "Guardando..." : "Guardar Categoría"}
+                                            {loading ? "Guardando..." : "Guardar Marca"}
                                         </button>
                                     </div>
                                 </div>
@@ -285,12 +271,11 @@ const CategoriaProductoCreatePage = () => {
                                     </li>
                                     <li className="flex items-start gap-2">
                                         <BadgeCheck className="w-4 h-4 mt-0.5 flex-shrink-0 text-green-400" />
-                                        Mantén una estructura sencilla para futuras categorías.
+                                        Mantén una estructura sencilla para futuras marcas.
                                     </li>
                                     <li className="flex items-start gap-2">
                                         <BadgeCheck className="w-4 h-4 mt-0.5 flex-shrink-0 text-green-400" />
                                         Usar nombres claros y consistentes facilitan la búsqueda y el mantenimiento del catálogo.
-                                        {/* Usa nombres que faciliten la búsqueda y mantenimiento del catálogo. */}
                                     </li>
                                 </ul>
                             </aside>
@@ -302,4 +287,4 @@ const CategoriaProductoCreatePage = () => {
     )
 }
 
-export default CategoriaProductoCreatePage;
+export default MarcaCreatePage;

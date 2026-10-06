@@ -29,6 +29,19 @@ import CategoriaProductoListPage from "./pages/categoria_producto/CategoriaProdu
 import CategoriaProductoCreatePage from "./pages/categoria_producto/CategoriaProductoCreatePage";
 import CategoriaProductoDetailPage from "./pages/categoria_producto/CategoriaProductoDetailPage";
 import CategoriaProductoEditPage from "./pages/categoria_producto/CategoriaProductoEditPage";
+import UnidadMedidaCreatePage from "./pages/unidad_medida/UnidadMedidaCreatePage";
+import UnidadMedidaListPage from "./pages/unidad_medida/UnidadMedidaListPage";
+import UnidadMedidaDetailPage from "./pages/unidad_medida/UnidadMedidaDetailPage";
+import UnidadMedidaEditPage from "./pages/unidad_medida/UnidadMedidaEditPage";
+import MarcaListPage from "./pages/marcas/MarcaListPage";
+import MarcaCreatePage from "./pages/marcas/MarcaCreatePage";
+import MarcaDetailPage from "./pages/marcas/MarcaDetailPage";
+import MarcaEditPage from "./pages/marcas/MarcaEditPage";
+import ProductoListPage from "./pages/productos/ProductoListPage";
+import ProductoCreatePage from "./pages/productos/ProductoCreatePage";
+import ColorListPage from "./pages/colores/ColorListPage";
+import ColorFormPage from "./pages/colores/ColorFormPage";
+import ColorDetailPage from "./pages/colores/ColorDetailPage";
 
 /* 
   Tip para modificar fácil:
@@ -99,6 +112,31 @@ function App() {
         <Route path="/categorias-productos/create" element={<CategoriaProductoCreatePage />} />
         <Route path="/categorias-productos/:id" element={<CategoriaProductoDetailPage />} />
         <Route path="/categorias-productos/:id/edit" element={<CategoriaProductoEditPage />} />
+
+        {/* Páginas de unidades de medida */}
+        <Route path="/unidades-medida" element={<UnidadMedidaListPage />} />
+        <Route path="/unidades-medida/create" element={<UnidadMedidaCreatePage />} />
+        <Route path="/unidades-medida/:id" element={<UnidadMedidaDetailPage />} />
+        <Route path="/unidades-medida/:id/edit" element={<UnidadMedidaEditPage />} />
+
+        {/* Páginas de colores */}
+        <Route path="/colores" element={<ColorListPage />} />
+        <Route path="/colores/create" element={<ColorFormPage />} />
+        <Route path="/colores/:id" element={<ColorDetailPage />} />
+        <Route path="/colores/:id/edit" element={<ColorFormPage />} />
+
+        {/* Páginas de marcas */}
+        <Route path="/marcas" element={<MarcaListPage />} />
+        <Route path="/marcas/create" element={<MarcaCreatePage />} />
+        <Route path="/marcas/:id" element={<MarcaDetailPage />} />
+        <Route path="/marcas/:id/edit" element={<MarcaEditPage />} />
+
+        {/* Páginas de productos */}
+        <Route path="/productos" element={<ProductoListPage />} />
+        <Route path="/productos/create" element={<ProductoCreatePage />} />
+        {/* <Route path="/productos/:id" element={<ProductoDetailPage />} />
+        <Route path="/productos/:id/edit" element={<ProductoEditPage />} /> */}
+
 
         {/* Página de ventas */}
         <Route path="/sales" element={<SalesPage />} />

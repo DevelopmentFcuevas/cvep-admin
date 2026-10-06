@@ -12,8 +12,8 @@ import { List,
     Lightbulb, 
     BadgeCheck } from "lucide-react";
 // 🔧 Servicios (API, helpers, utilidades)
-import { getCategoriaProductoById, 
-    updateCategoriaProducto } from '../../modules/inventory/services/categoriaProductoService';
+import { getUnidadMedidaById,
+    updateUnidadMedida } from '../../modules/inventory/services/unidadMedidaService';
 // 🧩 Componentes comunes
 import Header from '../../components/common/Header';
 import Breadcrumb from '../../components/common/Breadcrumb';
@@ -21,64 +21,62 @@ import Section from '../../components/common/Section';
 // Componentes específicos
 
 /**
- * 📝 Página de edición de una categoría de producto.
+ * 📝 Página de edición de una unidad de medida.
  */
-const initialFormState = { nombre: '', descripcion: '', sigla: '' };
+const initialFormState = { nombre: '', descripcion: '', sigla: '', decimal: '' };
 
-const CategoriaProductoEditPage = () => {
+const UnidadMedidaEditPage = () => {
 
-    // Obtener el ID de la categoría de producto desde los parámetros de la URL
+    // Obtener el ID de la unidad de medida desde los parámetros de la URL
     const { id } = useParams();
-
+    
     // Hook de navegación para redirigir a otras páginas
     const navigate = useNavigate();
 
-    // Estado para manejar el formulario de edición de categoría de producto 
+    // Estado para manejar el formulario de edición de unidad de medida
     const [form, setForm] = useState(initialFormState);
     
-    // Estado para mostrar mensajes globales al usuario (éxito o error) 
+    //  Estado para manejar mensajes de éxito o error
     const [message, setMessage] = useState({ type: '', text: '' });
     
-    // Estado para manejar errores de validación del formulario
+    //  Estado para manejar errores de validación del formulario
     const [errors, setErrors] = useState({});
     
-    // Estado para indicar si se está realizando una operación (como guardar)
-    // Permite deshabilitar el botón mientras se guarda para evitar múltiples envíos.
+    //  Estado para manejar el estado de carga (loading) durante la actualización
     const [loading, setLoading] = useState(false);
     
-    // Referencia para evitar múltiples envíos del formulario mientras se está procesando la solicitud.
+    //  Referencia para evitar múltiples envíos del formulario mientras se procesa la solicitud
     const submittingRef = useRef(false);
 
-    // 📡 Cargar la categoría de producto al montar el componente
+    // 📡 Cargar la unidad de medida al montar el componente
     useEffect(() => {
         if (!id) return;
 
         let isMounted = true;
 
-        // Llamada a la API para obtener los datos de la categoría de producto por su ID
-        getCategoriaProductoById(id)
+        // Llamada a la API para obtener los datos de la unidad de medida por ID
+        getUnidadMedidaById(id)
             .then((res) => {
                 if (!isMounted) return;
 
-                // Manejo de la respuesta de la API y actualización del estado del formulario
-                const categoria = res?.data?.data ?? res?.data ?? {};
+                const unidadMedida = res?.data?.data ?? res?.data ?? {};
                 setForm({
-                    nombre: categoria.nombre ?? categoria.name ?? '',
-                    descripcion: categoria.descripcion ?? '',
-                    sigla: categoria.sigla ?? '',
+                    nombre: unidadMedida.nombre ?? unidadMedida.nombre ?? '',
+                    descripcion: unidadMedida.descripcion ?? '',
+                    sigla: unidadMedida.sigla ?? '',
+                    decimal: unidadMedida.decimal ?? unidadMedida.decimales ?? '',
                 });
             })
             .catch((err) => {
-                console.error('Error al cargar la categoría de producto:', err);
+                console.error('Error al cargar la unidad de medida:', err);
                 if (isMounted) {
-                    setMessage({ type: 'error', text: 'No se pudo cargar la categoría de producto.' });
+                    setMessage({ type: 'error', text: 'No se pudo cargar la unidad de medida.' });
                 }
             });
 
         return () => {
             isMounted = false;
         };
-
     }, [id]);
 
     // Maneja los cambios en los campos del formulario
@@ -89,25 +87,30 @@ const CategoriaProductoEditPage = () => {
 
     const validateForm = () => {
         const newErrors = {};
-        
-        // Validación del nombre de la categoría (obligatorio, solo letras, espacios y guiones)
+
+        // Validación del nombre de la unidad de medida (obligatorio, solo letras, espacios y guiones)
         const isBlank = (value) => typeof value !== 'string' ? !value && value !== 0 : value.trim() === '';
 
-        // Validación del nombre de la categoría (obligatorio, solo letras, espacios y guiones)
+        // Validación del nombre de la unidad de medida (obligatorio, solo letras, espacios y guiones)
         if (isBlank(form.nombre)) {
-            newErrors.nombre = 'Por favor, ingresa el nombre de la categoría.';
+            newErrors.nombre = 'Por favor, ingresa el nombre de la unidad de medida.';
         } else if (!/^[\p{L}\s'-]{2,255}$/u.test(form.nombre.trim())) {
             newErrors.nombre = 'El nombre contiene caracteres inválidos o excede los 255 caracteres.';
         }
 
-        // Validación de la descripción de la categoría (opcional, solo letras, espacios y guiones)
+        // Validación de la descripción de la unidad de medida (opcional, solo letras, espacios y guiones)
         if (form.descripcion && form.descripcion.trim().length > 255) {
             newErrors.descripcion = 'La descripción no puede exceder los 255 caracteres.';
         }
 
-        // Validación de la sigla de la categoría (opcional, solo letras, espacios y guiones)
+        // Validación de la sigla de la unidad de medida (opcional, solo letras, espacios y guiones)
         if (form.sigla && form.sigla.trim().length > 10) {
             newErrors.sigla = 'La sigla no puede exceder los 10 caracteres.';
+        }
+
+        // Validación de los decimales (opcional, debe ser un número entero mayor o igual a 0)
+        if (form.decimal !== '' && !/^\d+$/.test(String(form.decimal))) {
+            newErrors.decimal = 'Los decimales deben ser un número entero mayor o igual a 0.';
         }
 
         // Actualiza el estado de errores y retorna si el formulario es válido
@@ -115,7 +118,7 @@ const CategoriaProductoEditPage = () => {
         return Object.keys(newErrors).length === 0;
     };
 
-    // Maneja el envío del formulario para actualizar la categoría de producto
+    // Maneja el envío del formulario para actualizar la unidad de medida
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -127,7 +130,6 @@ const CategoriaProductoEditPage = () => {
             return;
         }
 
-        // Evitar múltiples envíos mientras se procesa la solicitud
         submittingRef.current = true;
         setLoading(true);
 
@@ -136,17 +138,18 @@ const CategoriaProductoEditPage = () => {
                 nombre: form.nombre.trim(),
                 descripcion: form.descripcion?.trim() || '',
                 sigla: form.sigla?.trim() || '',
+                decimal: typeof form.decimal === 'string' ? form.decimal.trim() : form.decimal,
             };
 
-            // Llamada a la API para actualizar la categoría de producto
-            await updateCategoriaProducto(id, sanitizedForm);
-            setMessage({ type: 'success', text: '¡La categoría se actualizó correctamente!' });
-            setTimeout(() => navigate(`/categorias-productos/${id}`), 1500);
+            // Llamada a la API para actualizar la unidad de medida
+            await updateUnidadMedida(id, sanitizedForm);
+            setMessage({ type: 'success', text: '¡La unidad de medida se actualizó correctamente!' });
+            setTimeout(() => navigate(`/unidades-medida/${id}`), 1500);
         } catch (error) {
-            console.error('Error en handleSubmit - No se pudo actualizar la categoría:', error);
+            console.error('Error en handleSubmit - No se pudo actualizar la unidad de medida:', error);
             setMessage({
                 type: 'error',
-                text: 'Ocurrió un error al actualizar la categoría. Intenta nuevamente más tarde.',
+                text: 'Ocurrió un error al actualizar la unidad de medida. Intenta nuevamente más tarde.',
             });
         } finally {
             submittingRef.current = false;
@@ -157,21 +160,21 @@ const CategoriaProductoEditPage = () => {
     return (
         <div className='flex-1 overflow-auto relative z-10 bg-gray-900'>
             {/* 🧭 Header superior de la página(Cabecera con título) */}
-            <Header title={`✏️ Editar Categoría: ${form.nombre || 'Categoría'}`} />
+            <Header title={`✏️ Editar Unidad de Medida: ${form.nombre || 'Unidad de Medida'}`} />
 
             <Breadcrumb items={[
-                { label: <><List className="inline w-4 h-4 mr-1"/> Listado</>, href: '/categorias-productos' },
-                { label: <><Pencil className="inline w-4 h-4 mr-1"/> Editar Categoría: {form.nombre || 'Categoría'}</> }
+                { label: <><List className="inline w-4 h-4 mr-1"/> Listado</>, href: '/unidad-medidas' },
+                { label: <><Pencil className="inline w-4 h-4 mr-1"/> Editar Unidad de Medida: {form.nombre || 'Unidad de Medida'}</> }
             ]} />
 
             <main className='max-w-7xl mx-auto py-6 px-4 lg:px-8'>
-                <Section icon={FolderCog} title="📝 Datos de la Categoría" description="Actualiza el nombre de la categoría y mantén la información ordenada.">
+                <Section icon={FolderCog} title="📝 Datos de la Unidad de Medida" description="Actualiza el nombre de la unidad de medida y mantén la información ordenada.">
                     {/* Mensaje informativo sobre la sección */}
                     <div className="bg-blue-600/10 border border-blue-500 text-blue-200 p-4 rounded mb-6">
                         <div className="flex items-start gap-3">
                             <Sparkles className="w-5 h-5 mt-0.5 text-blue-300" />
                             <div>
-                                <p className="text-sm font-medium">Aquí puedes actualizar los datos de la categoría para mantenerla organizada.</p>
+                                <p className="text-sm font-medium">Aquí puedes actualizar los datos de la unidad de medida para mantenerla organizada.</p>
                                 <p className="text-sm mt-1 text-blue-100/80">Ajusta el dato principal cuando necesites corregir o mejorar la clasificación del producto.</p>
                             </div>
                         </div>
@@ -194,17 +197,17 @@ const CategoriaProductoEditPage = () => {
                                             <div>
                                                 <h3 className="text-sm font-semibold text-white">Información básica</h3>
                                                 <p className="text-sm text-gray-400 mt-1">
-                                                    Actualiza la categoría.
+                                                    Actualiza la unidad de medida.
                                                 </p>
                                             </div>
                                             <span className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-indigo-300">
-                                                Formulario de Categoría
+                                                Formulario de Unidad de Medida
                                             </span>
                                         </div>
 
                                         <div className="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
                                             <div className="lg:col-span-2">
-                                                <label className="text-lg font-semibold text-gray-100">Nombre de la categoría</label>
+                                                <label className="text-lg font-semibold text-gray-100">Nombre de la unidad de medida</label>
                                                 <input
                                                     type="text"
                                                     name="nombre"
@@ -214,31 +217,31 @@ const CategoriaProductoEditPage = () => {
                                                     placeholder="Ej: Útiles de oficina"
                                                     maxLength={255}
                                                 />
-                                                <p className="text-xs text-gray-400 mt-1">Nombre que identifica la categoría dentro del sistema.</p>
+                                                <p className="text-xs text-gray-400 mt-1">Nombre que identifica la unidad de medida dentro del sistema.</p>
                                                 {errors.nombre && (
                                                     <p className="text-red-400 text-sm mt-1">{errors.nombre}</p>
                                                 )}
                                             </div>
 
                                             <div className="lg:col-span-2">
-                                                <label className="text-lg font-semibold text-gray-100">Descripción de la categoría</label>
+                                                <label className="text-lg font-semibold text-gray-100">Descripción de la unidad de medida</label>
                                                 <input
                                                     type="text"
                                                     name="descripcion"
                                                     value={form.descripcion}
                                                     onChange={handleChange}
                                                     className="mt-1 w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                                    placeholder="Ej: Categoría de productos para uso en el área de oficina"
+                                                    placeholder="Ej: Unidad de medida para productos de oficina, como lápices, cuadernos, etc."
                                                     maxLength={255}
                                                 />
-                                                <p className="text-xs text-gray-400 mt-1">Descripción de la categoría.</p>
+                                                <p className="text-xs text-gray-400 mt-1">Descripción de la unidad de medida.</p>
                                                 {errors.descripcion && (
                                                     <p className="text-red-400 text-sm mt-1">{errors.descripcion}</p>
                                                 )}
                                             </div>
 
                                             <div className="lg:col-span-2">
-                                                <label className="text-lg font-semibold text-gray-100">Sigla de la categoría</label>
+                                                <label className="text-lg font-semibold text-gray-100">Sigla de la unidad de medida</label>
                                                 <input
                                                     type="text"
                                                     name="sigla"
@@ -248,25 +251,29 @@ const CategoriaProductoEditPage = () => {
                                                     placeholder="Ej: UO"
                                                     maxLength={10}
                                                 />
-                                                <p className="text-xs text-gray-400 mt-1">Sigla que representa la categoría.</p>
+                                                <p className="text-xs text-gray-400 mt-1">Sigla que representa la unidad de medida.</p>
                                                 {errors.sigla && (
                                                     <p className="text-red-400 text-sm mt-1">{errors.sigla}</p>
                                                 )}
                                             </div>
 
-                                            {/* <div className="rounded-xl border border-gray-700 bg-gray-800/70 p-4">
-                                                <h4 className="text-sm font-semibold text-gray-100">Buen uso</h4>
-                                                <p className="mt-2 text-sm text-gray-400">
-                                                    Mantén nombres claros para que la categoría sea fácil de localizar y administrar.
-                                                </p>
-                                            </div> */}
-
-                                            {/* <div className="rounded-xl border border-dashed border-gray-600 bg-gray-800/50 p-4">
-                                                <h4 className="text-sm font-semibold text-gray-100">Listo para escalar</h4>
-                                                <p className="mt-2 text-sm text-gray-400">
-                                                    Cuando añadas nuevos atributos, este espacio se adaptará sin perder orden visual.
-                                                </p>
-                                            </div> */}
+                                            <div className="lg:col-span-2">
+                                                <label className="text-lg font-semibold text-gray-100">Decimales</label>
+                                                <input
+                                                    type="number"
+                                                    name="decimal"
+                                                    value={form.decimal}
+                                                    onChange={handleChange}
+                                                    className="mt-1 w-full rounded-md bg-gray-700 text-white p-2 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                    placeholder="Ej: 2"
+                                                    min={0}
+                                                    inputMode="numeric"
+                                                />
+                                                <p className="text-xs text-gray-400 mt-1">Número de decimales para la unidad de medida.</p>
+                                                {errors.decimal && (
+                                                    <p className="text-red-400 text-sm mt-1">{errors.decimal}</p>
+                                                )}
+                                            </div>
 
                                         </div>
                                     </section>
@@ -276,7 +283,7 @@ const CategoriaProductoEditPage = () => {
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <button
                                             type="button"
-                                            onClick={() => navigate('/categorias-productos')}
+                                            onClick={() => navigate('/unidades-medida')}
                                             disabled={loading}
                                             className="flex items-center gap-2 bg-slate-500 hover:bg-slate-600 text-white px-4 py-2 rounded-lg disabled:opacity-60 disabled:cursor-not-allowed"
                                         >
@@ -297,7 +304,7 @@ const CategoriaProductoEditPage = () => {
                                             className='bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg font-bold shadow-md transition flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed'
                                         >
                                             <Save size={18}/>
-                                            {loading ? 'Guardando...' : 'Guardar Categoría'}
+                                            {loading ? 'Guardando...' : 'Guardar Unidad de Medida'}
                                         </button>
                                     </div>
                                 </div>
@@ -316,12 +323,8 @@ const CategoriaProductoEditPage = () => {
                                     </li>
                                     <li className="flex items-start gap-2">
                                         <BadgeCheck className="w-4 h-4 mt-0.5 flex-shrink-0 text-green-400" />
-                                        Actualiza la categoría cuando cambie su propósito o clasificación.
+                                        Actualiza la unidad de medida cuando cambie su propósito o clasificación.
                                     </li>
-                                    {/* <li className="flex items-start gap-2">
-                                        <BadgeCheck className="w-4 h-4 mt-0.5 flex-shrink-0 text-green-400" />
-                                        Usar nombres claros y consistentes facilitan la búsqueda y el mantenimiento del catálogo.
-                                    </li> */}
                                 </ul>
                             </aside>
                         </div>
@@ -332,4 +335,4 @@ const CategoriaProductoEditPage = () => {
     );
 };
 
-export default CategoriaProductoEditPage;
+export default UnidadMedidaEditPage;
